@@ -161,13 +161,19 @@ BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
     //-------------------------------------------------------------------------
 	// 5. Send the signature to the client for authentication
 	printf("5. Sending signature to client for authentication...");
-
+	BIO_flush(hash_bin);
+	//SSL_write
+	char signature_buffer[BUFFER_SIZE];
+	memcpy(signature_buffer, signature, BUFFER_SIZE);
+	SSL_write(ssl, signature_buffer, BUFFER_SIZE);
     printf("DONE.\n");
     
     //-------------------------------------------------------------------------
 	// 6. Receive a filename request from the client
 	printf("6. Receiving file request from client...");
-	
+	char file[BUFFER_SIZE];
+    //SSL_read
+    SSL_read(ssl,file,BUFFER_SIZE);
     printf("RECEIVED.\n");
     printf("    (File requested: \"%s\"\n", file);
 
