@@ -51,9 +51,9 @@ int main(int argc, char** argv)
     //-------------------------------------------------------------------------
 	// 1. Establish SSL connection to the server
 	printf("1.  Establishing SSL connection with the server...");
-
+	/////////////////////////////////////////////////////////////////////////////
 	// Setup client context
-    SSL_CTX* ctx = SSL_CTX_new(SSLv23_method());
+   	 SSL_CTX* ctx = SSL_CTX_new(SSLv23_method());
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 //	SSL_CTX_set_options(ctx, SSL_OP_ALL|SSL_OP_NO_SSLv2);
 	if (SSL_CTX_set_cipher_list(ctx, "ADH") != 1)
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     //-------------------------------------------------------------------------
 	// 3a. Receive the signed key from the server
 	printf("3a. Receiving signed key from server...");
-
+	/////////////////////////////////////////////////////////////////////////////
     char buffb[BUFFER_SIZE];
    	 int len=5;
 	//SSL_read;
@@ -115,7 +115,6 @@ int main(int argc, char** argv)
 	//cout << "THISISDHISNHDF" << bufflen << "udshbgidfygujhUHGHYI"<<endl;	
 	//string test = buffb;
 	//cout<< test<<"test"<<endl;
-    
 	printf("RECEIVED.\n");
 	printf("    (Signature: \"%s\" (%d bytes))\n", buff2hex((const unsigned char*)buffb, len).c_str(), len);
 	
@@ -124,7 +123,6 @@ int main(int argc, char** argv)
 	// 3b. Authenticate the signed key
 	printf("3b. Authenticating key...");
 
-	
 	char buffc[BUFFER_SIZE];
 	
 
@@ -160,7 +158,6 @@ int main(int argc, char** argv)
 	//SSL_write
 	int file_length = SSL_write(ssl,filename,out);
 
-
   	printf("SENT.\n");
 	printf("    (File requested: \"%s\")\n", filename);
 
@@ -168,15 +165,36 @@ int main(int argc, char** argv)
 	// 5. Receives and displays the contents of the file requested
 	printf("5.  Receiving response from server...");
 	
+	/////////////////////////////////////////////////////////////////////////////
+	BIO* output_file = BIO_new_file("out2.txt", "w");
+    	char buffg[BUFFER_SIZE]; 
+        int cfile;
+    	//SSL_read
+
+	while(1)
+	{
+	 cfile = SSL_read(ssl,buffg,BUFFER_SIZE);
 	
+	 if(cfile < BUFFER_SIZE){
+	   char buffh[cfile]; 
+	   for(int i = 0; i < cfile; i++){
+		  buffh[i] = buffg[i]; 
+	   }
+	   BIO_write(output_file, buffg, cfile); 
+	   break;
+	  } 
+	 else{
+	  BIO_write(output_file, buffg, BUFFER_SIZE); 
+	 }
+	}
 	
 	printf("FILE RECEIVED.\n");
 
     //-------------------------------------------------------------------------
 	// 6. Close the connection
 	printf("6.  Closing the connection...");
-
-
+	//SSL_shutdown
+	SSL_shutdown(ssl);
 	printf("DONE.\n");
 	
 	printf("\n\nALL TASKS COMPLETED SUCCESSFULLY.\n");

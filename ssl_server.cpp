@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     //-------------------------------------------------------------------------
 	// 1. Allow for a client to establish an SSL connection
 	printf("1. Allowing for client SSL connection...");
-
+	/////////////////////////////////////////////////////////////////////////////
 	// Setup DH object and generate Diffie-Helman Parameters
 	DH* dh = DH_generate_parameters(128, 5, NULL, NULL);
 	int dh_err;
@@ -115,7 +115,8 @@ int main(int argc, char** argv)
     //-------------------------------------------------------------------------
 	// 3. Generate the SHA1 hash of the challenge
 	printf("3. Generating SHA1 hash...");
-
+	/////////////////////////////////////////////////////////////////////////////
+	//BIO_new(BIO_s_mem());
 	char buffa[EVP_MAX_MD_SIZE];	
 	BIO *hash_val;
 	BIO *hash_bin = BIO_new(BIO_s_mem());
@@ -135,6 +136,7 @@ int main(int argc, char** argv)
 	//BIO_gets;
     	int mdlen= BIO_gets(hash_val, buffa, EVP_MAX_MD_SIZE);
 	string hash_string = buff2hex((const unsigned char*)buffa, mdlen);
+
 	printf("SUCCESS.\n");
 	printf("    (SHA1 hash: \"%s\" (%d bytes))\n", hash_string.c_str(), mdlen);
 
@@ -143,7 +145,9 @@ int main(int argc, char** argv)
 	// 4. Sign the key using the RSA private key specified in the
 	//     file "rsaprivatekey.pem"
 	printf("4. Signing the key...");
-BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
+
+	
+	BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
 	 //PEM_read_bio_RSAPrivateKey
 	RSA * rsa = PEM_read_bio_RSAPrivateKey(bio,NULL,NULL,NULL);
 	
@@ -161,19 +165,24 @@ BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
     //-------------------------------------------------------------------------
 	// 5. Send the signature to the client for authentication
 	printf("5. Sending signature to client for authentication...");
+
+	//BIO_flush
 	BIO_flush(hash_bin);
 	//SSL_write
 	char signature_buffer[BUFFER_SIZE];
 	memcpy(signature_buffer, signature, BUFFER_SIZE);
 	SSL_write(ssl, signature_buffer, BUFFER_SIZE);
+
     printf("DONE.\n");
     
     //-------------------------------------------------------------------------
 	// 6. Receive a filename request from the client
 	printf("6. Receiving file request from client...");
-	char file[BUFFER_SIZE];
+	/////////////////////////////////////////////////////////////////////////////
+    char file[BUFFER_SIZE];
     //SSL_read
     SSL_read(ssl,file,BUFFER_SIZE);
+	
     printf("RECEIVED.\n");
     printf("    (File requested: \"%s\"\n", file);
 
@@ -183,14 +192,44 @@ BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
 
 	PAUSE(2);
 	
+    	//BIO_read(bfile, buffer, BUFFER_SIZE)) > 0)
+	//SSL_write(ssl, buffer, bytesRead);
+
+    	char buffer[BUFFER_SIZE];
 	
+        BIO_flush(server);
+	int bytesRead = 0;
+        
+	//BIO_new_file
+	BIO*bfile = BIO_new_file(file, "r"); 
+
+	while(1)
+	{
+		bytesRead = BIO_read(bfile, buffer, BUFFER_SIZE); 
+		char buffe[bytesRead];
+		if(bytesRead < BUFFER_SIZE){
+			for(int i = 0; i< bytesRead; i++){
+				buffe[i] = buffer[i];
+		 	 } 
+		SSL_write(ssl, buffe, bytesRead);	
+	break;
+		}
+		else{ 
+		SSL_write(ssl, buffer, bytesRead); 
+		}	
+	}
     printf("SENT.\n");
 
     //-------------------------------------------------------------------------
 	// 8. Close the connection
 	printf("8. Closing connection...");
-
-        printf("DONE.\n");
+	/////////////////////////////////////////////////////////////////////////////
+    //BIO_reset
+    BIO_reset(server);
+    //SSL_shutdown
+    SSL_shutdown(ssl);
+    //BIO_reset
+    printf("DONE.\n");
 
     printf("\n\nALL TASKS COMPLETED SUCCESSFULLY.\n");
 	
