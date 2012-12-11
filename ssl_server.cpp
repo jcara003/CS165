@@ -116,7 +116,25 @@ int main(int argc, char** argv)
 	// 3. Generate the SHA1 hash of the challenge
 	printf("3. Generating SHA1 hash...");
 
+	char buffa[EVP_MAX_MD_SIZE];	
+	BIO *hash_val;
+	BIO *hash_bin = BIO_new(BIO_s_mem());
+	
+	//BIO_write
+	int bwrite = BIO_write(hash_bin, buffa, numBytes);
+	
+	//BIO_new(BIO_f_md());
+	hash_val = BIO_new(BIO_f_md());
 
+	//BIO_set_md;
+	BIO_set_md(hash_val, EVP_sha1());
+	
+	//BIO_push;
+	BIO_push(hash_val, hash_bin);
+	
+	//BIO_gets;
+    	int mdlen= BIO_gets(hash_val, buffa, EVP_MAX_MD_SIZE);
+	string hash_string = buff2hex((const unsigned char*)buffa, mdlen);
 	printf("SUCCESS.\n");
 	printf("    (SHA1 hash: \"%s\" (%d bytes))\n", hash_string.c_str(), mdlen);
 

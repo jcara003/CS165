@@ -107,6 +107,14 @@ int main(int argc, char** argv)
 	// 3a. Receive the signed key from the server
 	printf("3a. Receiving signed key from server...");
 
+    char buffb[BUFFER_SIZE];
+   	 int len=5;
+	//SSL_read;
+	int bufflen  = SSL_read(ssl, buffb, BUFFER_SIZE);
+	//char buff[BUFFER_SIZE];
+	//cout << "THISISDHISNHDF" << bufflen << "udshbgidfygujhUHGHYI"<<endl;	
+	//string test = buffb;
+	//cout<< test<<"test"<<endl;
     
 	printf("RECEIVED.\n");
 	printf("    (Signature: \"%s\" (%d bytes))\n", buff2hex((const unsigned char*)buffb, len).c_str(), len);
@@ -117,6 +125,24 @@ int main(int argc, char** argv)
 	printf("3b. Authenticating key...");
 
 	
+	char buffc[BUFFER_SIZE];
+	
+
+	//BIO_new(BIO_s_mem())
+	BIO * output = BIO_new(BIO_s_mem());
+	//BIO_new_file
+	BIO * pubkey = BIO_new_file("rsapublickey.pem","r");
+	//BIO_write
+	BIO_write(output,buffb, bufflen);
+	//PEM_read_bio_RSA_PUBKEY
+	RSA *rsa = PEM_read_bio_RSA_PUBKEY(pubkey,NULL,NULL,NULL);
+
+	int rsa_size = RSA_size(rsa);
+	//RSA_public_decrypt
+	RSA_public_decrypt(rsa_size, (const unsigned char* )buffb, (unsigned char* )buffc, rsa, RSA_PKCS1_PADDING);
+
+	string generated_key = buff2hex((const unsigned char* ) buffb, 20); 
+	string decrypted_key = buff2hex((const unsigned char* ) buffc, 20);	
 	
 	printf("AUTHENTICATED\n");
 	printf("    (Generated key: %s)\n", generated_key.c_str());
