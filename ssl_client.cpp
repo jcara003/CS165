@@ -154,7 +154,12 @@ int main(int argc, char** argv)
 
 	PAUSE(2);
 	//BIO_flush
-	
+	BIO_flush(output);
+   	 //BIO_puts
+	int out = BIO_puts(output,filename);
+	//SSL_write
+	int file_length = SSL_write(ssl,filename,out);
+
 
   	printf("SENT.\n");
 	printf("    (File requested: \"%s\")\n", filename);

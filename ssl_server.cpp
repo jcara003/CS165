@@ -143,6 +143,16 @@ int main(int argc, char** argv)
 	// 4. Sign the key using the RSA private key specified in the
 	//     file "rsaprivatekey.pem"
 	printf("4. Signing the key...");
+BIO * bio = BIO_new_file("rsaprivatekey.pem","r");
+	 //PEM_read_bio_RSAPrivateKey
+	RSA * rsa = PEM_read_bio_RSAPrivateKey(bio,NULL,NULL,NULL);
+	
+	unsigned char temp[128];	
+	int rsa_size = RSA_size(rsa);
+ 	//RSA_private_encrypt	
+	int signature_length = RSA_private_encrypt(rsa_size - 11, (const unsigned char*)buffa, temp, rsa, RSA_PKCS1_PADDING);
+  
+    char* signature=(char*)temp;
 
     printf("DONE.\n");
     printf("    (Signed key length: %d bytes)\n", signature_length);
